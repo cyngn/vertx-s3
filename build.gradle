@@ -1,0 +1,63 @@
+apply plugin: 'java'
+// Uncomment below when doing official builds
+//apply from: "gradle/sona.gradle"
+
+version = '0.1.0'
+group = "com.cyngn.vertx"
+archivesBaseName = "vertx-s3"
+
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.1.1'
+    }
+}
+
+if (!JavaVersion.current().java8Compatible) {
+    throw new IllegalStateException('''A Haiku:
+                                      |  This needs Java 8,
+                                      |  You are using something else,
+                                      |  Refresh. Try again.'''.stripMargin())
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'http://oss.sonatype.org/content/repositories/snapshots/' }
+}
+
+
+dependencies {
+    compile 'io.vertx:vertx-core:3.0.0'
+    compile 'io.vertx:vertx-web:3.0.0'
+    compile 'org.slf4j:slf4j-api:1.6.6'
+    compile 'ch.qos.logback:logback-core:1.0.7'
+    compile 'ch.qos.logback:logback-classic:1.0.7'
+    testCompile 'junit:junit:4.11'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.0'
+}
+
+task release() << {}
+
+gradle.taskGraph.whenReady {taskGraph ->
+    if (!taskGraph.hasTask(release)) {
+        version += '-SNAPSHOT'
+    }
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
